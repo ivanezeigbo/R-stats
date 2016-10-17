@@ -8,7 +8,7 @@ set.seed(14432)
 #x$region <- as.numeric(x$region) #Perhaps their region affects their believes too. So converting the numbers on the region to numeric/integer values for matching
 treat <- x$anygirls
 #Did not pick x$perf because x$female should be more important in my reasoning #x$aauw, x$rtl, x$rgroup, x$statalph
-Xi <- cbind(x$female, x$white, x$repub, x$age, I(x$age ^2), x$srvlng, I(x$srvlng^2),  x$demvote)
+Xi <- cbind(x$female, x$white, x$repub, x$age, x$srvlng,  x$demvote)
 BalanceMat <- cbind(x$female, x$white, x$repub, x$age, I(x$age ^2), x$srvlng, I(x$srvlng^2), x$demvote)
 treat <- x$anygirls
 Y <- x$nowtot
