@@ -22,7 +22,7 @@ fit <- glm(pbs2s3 ~ un2int + wartype + wardur + exp + logdead + factnum + log(tr
 #Decision tree has the 'd_' prefix
 #Decision tree fit
 d_fit <- rpart(pbs2s3 ~ un2int + wartype + wardur + exp + logdead + factnum + trnsfcap + develop + treaty + untype4, data = train, method = 'class')
-summary(d_fit)
+#summary(d_fit)
 
 anova(fit, test="Chisq")
 dat <- cbind(train$pbs2s3, train$un2int, train$wartype, train$wardur, train$exp, train$logdead, train$factnum, train$trnsfcap, train$develop, train$treaty, train$untype4) #creating matrix containing explanatory variables used in logistic regression
@@ -46,10 +46,10 @@ while (count <= length(train$pbs2s3)){
       misclassified1 = misclassified1 + 1
     }
   }
-  if ((d_train_pred[[count]] > 0.5) && (train$pbs2s3[count] ==1)) {
+  if ((d_train_pred[[count, 2]] > d_train_pred[[count, 1]]) && (train$pbs2s3[count] ==1)) {
     d_accurate1 = d_accurate1 + 1
   }
-  else if ((d_train_pred[[count]] <= 0.5) && (train$pbs2s3[count] ==0)){
+  else if ((d_train_pred[[count, 2]] <= d_train_pred[[count, 1]]) && (train$pbs2s3[count] ==0)){
     d_accurate1 = d_accurate1 + 1
   }
   else{
@@ -59,7 +59,7 @@ while (count <= length(train$pbs2s3)){
 }
 accuracy1 = accurate1/(accurate1 + misclassified1)
 print(paste('Accuracy:', accuracy1, 'or,', accuracy1 * 100, '%'))
-confint(fit)#its confidence interval
+#confint(fit)#its confidence interval
 
 d_accuracy1 = d_accurate1/(d_accurate1 + d_misclassified1)
 print(paste('Accuracy of decision tree:', d_accuracy1, 'or,', d_accuracy1 * 100, '%'))
@@ -84,10 +84,10 @@ while (count2 <= length(test$pbs2s3)){
       misclassified2 = misclassified2 + 1
     }
   }
-  if ((d_test_pred[[count2]] > 0.5) && (test$pbs2s3[count2] ==1)) {
+  if ((d_test_pred[[count2, 2]] > d_test_pred[[count2, 1]]) && (test$pbs2s3[count2] ==1)) {
     d_accurate2 = d_accurate2 + 1
   }
-  else if ((d_test_pred[[count2]] <= 0.5) && (test$pbs2s3[count2] ==0)){
+  else if ((d_test_pred[[count2, 2]] <= d_test_pred[[count2, 1]]) && (test$pbs2s3[count2] ==0)){
     d_accurate2 = d_accurate2 + 1
   }
   else{
