@@ -3,7 +3,8 @@ library(ResourceSelection)
 library(ROCR)
 library(cluster)
 library(tree)
-
+library(randomForest)
+library(rpart)
 setwd("C:/Users/DELL/Downloads")
 datafile <- read.dta("peace.dta")
 set.seed(1234)
@@ -16,13 +17,22 @@ train <- datafile[sub1,] #training set
 sub2 = num[! num %in% sub1]
 test <- datafile[sub2,] #test set
 fit <- glm(pbs2s3 ~ un2int + wartype + wardur + exp + logdead + factnum + log(trnsfcap) + develop + treaty + untype4 + wardur*untype4, family = binomial, data = train)
-summary(fit)
+#summary(fit)
+
+#Decision tree has the 'd_' prefix
+#Decision tree fit
+d_fit <- rpart(pbs2s3 ~ un2int + wartype + wardur + exp + logdead + factnum + trnsfcap + develop + treaty + untype4, data = train, method = 'class')
+summary(d_fit)
+
 anova(fit, test="Chisq")
 dat <- cbind(train$pbs2s3, train$un2int, train$wartype, train$wardur, train$exp, train$logdead, train$factnum, train$trnsfcap, train$develop, train$treaty, train$untype4) #creating matrix containing explanatory variables used in logistic regression
 #Calculating model's accuracy on itself
 train_pred <- predict(fit, newdata = train, type = 'response')
+d_train_pred <- predict(d_fit, train)
 accurate1 = 0
+d_accurate1 = 0
 misclassified1 = 0
+d_misclassified1 = 0
 count = 1
 while (count <= length(train$pbs2s3)){
   if (!is.na(train_pred[[count]])){
@@ -36,17 +46,31 @@ while (count <= length(train$pbs2s3)){
       misclassified1 = misclassified1 + 1
     }
   }
+  if ((d_train_pred[[count]] > 0.5) && (train$pbs2s3[count] ==1)) {
+    d_accurate1 = d_accurate1 + 1
+  }
+  else if ((d_train_pred[[count]] <= 0.5) && (train$pbs2s3[count] ==0)){
+    d_accurate1 = d_accurate1 + 1
+  }
+  else{
+    d_misclassified1 = d_misclassified1 + 1
+  }
   count = count + 1
 }
 accuracy1 = accurate1/(accurate1 + misclassified1)
 print(paste('Accuracy:', accuracy1, 'or,', accuracy1 * 100, '%'))
 confint(fit)#its confidence interval
 
+d_accuracy1 = d_accurate1/(d_accurate1 + d_misclassified1)
+print(paste('Accuracy of decision tree:', d_accuracy1, 'or,', d_accuracy1 * 100, '%'))
 
 #Calculating model's accuracy on test set
 test_pred <- predict(fit, newdata = test, type = 'response')
+d_test_pred <- predict(d_fit, test)
 accurate2 = 0
+d_accurate2 = 0
 misclassified2 = 0
+d_misclassified2 = 0
 count2 = 1
 while (count2 <= length(test$pbs2s3)){
   if (!is.na(test_pred[[count2]])){
@@ -60,15 +84,33 @@ while (count2 <= length(test$pbs2s3)){
       misclassified2 = misclassified2 + 1
     }
   }
+  if ((d_test_pred[[count2]] > 0.5) && (test$pbs2s3[count2] ==1)) {
+    d_accurate2 = d_accurate2 + 1
+  }
+  else if ((d_test_pred[[count2]] <= 0.5) && (test$pbs2s3[count2] ==0)){
+    d_accurate2 = d_accurate2 + 1
+  }
+  else{
+    d_misclassified2 = d_misclassified2 + 1
+  }
   count2 = count2 + 1
 }
 accuracy2 = accurate2/(accurate2 + misclassified2)
 print(paste('Accuracy:', accuracy2, 'or,', accuracy2 * 100, '%'))
-plot(fit)
+#plot(fit)
+
+d_accuracy2 = d_accurate2/(d_accurate2 + d_misclassified2)
+print(paste('Accuracy:', d_accuracy2, 'or,', d_accuracy2 * 100, '%'))
+
 
 #Measurement of Performace using ROC curves and the AUC
 pr <- prediction(test_pred, test$pbs2s3)
 prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+
+
+
+
+
 qrf <- performance(pr, measure = "tnr", x.measure = "tpr") #Specificity against Sensitivity
 frf <- performance(pr, measure = 'fpr', x.measure = 'fnr')
 wrf <- performance(pr, measure = "tpr", x.measure = "acc")
